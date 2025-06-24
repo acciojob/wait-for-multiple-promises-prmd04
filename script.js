@@ -4,10 +4,12 @@ let table = document.getElementById("table");
 let body = document.createElement("tbody");
 body.id = "output";
 
-body.innerHTML = `<tr>
-<td colspan=2>Loading...</td>
-</tr>
+body.innerHTML = `
+  <tr id="loading">
+    <td colspan="2">Loading...</td>
+  </tr>
 `;
+
 
 table.appendChild(body);
 
@@ -19,7 +21,6 @@ function randomPromise(index) {
     }, delay);
   });
 }
-
 const promise1 = randomPromise(1);
 const promise2 = randomPromise(2);
 const promise3 = randomPromise(3);
@@ -38,7 +39,7 @@ Promise.all([promise1, promise2, promise3]).then((result) => {
     body.appendChild(row);
   });
 
-  const maxTime = Math.max(...result.map(r=> parseFloat(r.time).toFixed(3)));
+  const maxTime = Math.max(...result.map(r => parseFloat(r.time))).toFixed(2);
 
   const row = document.createElement("tr");
     row.innerHTML = `
