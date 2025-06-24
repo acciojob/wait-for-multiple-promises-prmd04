@@ -1,44 +1,76 @@
-const table = document.getElementById("table");
+//your JS code here. If required.
+window.onload = function () {
+  const outputElement = document.getElementById("output");
 
-  const body = document.createElement("tbody");
-  body.id = "output";
-  body.innerHTML = `<tr id="loading"><td colspan="2">Loading...</td></tr>`;
-  table.appendChild(body);
+  // Insert the loading row
+  const loadingRow = document.createElement("tr");
+  const loadingCell = document.createElement("td");
+	
+  loadingRow.id = "loading";
+  loadingCell.setAttribute("colspan", "2");
+  loadingCell.textContent = "Loading...";
+  loadingRow.appendChild(loadingCell);
+  outputElement.appendChild(loadingRow);
 
-  function randomPromise(index) {
-    const delay = Math.floor(Math.random() * 2000 + 1000); // 1000–3000 ms
+  // Record the overall start time
+  const startTime = Date.now();
+
+  // Function to create a promise
+  function createPromise(i) {
+    const delay = Math.floor(Math.random() * 2000) + 1000; // Between 1 and 3 seconds
+    const promiseStartTime = Date.now();
+
     return new Promise((resolve) => {
       setTimeout(() => {
-        const time = +(delay / 1000).toFixed(3); // precise float
-        resolve({ index, time });
+        const timeTaken = (Date.now() - promiseStartTime) / 1000; // In seconds
+        resolve({ name: "Promise " + i, timeTaken: timeTaken.toFixed(3) });
       }, delay);
     });
   }
 
-  const promise1 = randomPromise(1);
-  const promise2 = randomPromise(2);
-  const promise3 = randomPromise(3);
+  // Create 3 promises
+  const promises = [];
+  for (let i = 1; i <= 3; i++) {
+    promises.push(createPromise(i));
+  }
 
-  Promise.all([promise1, promise2, promise3]).then((results) => {
-    document.getElementById("loading")?.remove();
-    body.innerHTML = "";
+  // Wait for all promises to resolve
+  Promise.all(promises).then((results) => {
+    const endTime = Date.now();
+    const totalTime = (endTime - startTime) / 1000; // In seconds
 
-    // Insert promise rows (rounded for Cypress `parseInt`)
-    results.forEach(({ index, time }) => {
+    // Remove the loading row
+    outputElement.removeChild(loadingRow);
+
+    // Sort results by promise name
+    results.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Add rows for each promise
+    results.forEach((result) => {
       const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>Promise ${index}</td>
-        <td>${Math.round(time)}</td> <!-- Match parseInt logic -->
-      `;
-      body.appendChild(row);
+
+      const nameCell = document.createElement("td");
+      nameCell.textContent = result.name;
+      row.appendChild(nameCell);
+
+      const timeCell = document.createElement("td");
+      timeCell.textContent = result.timeTaken;
+      row.appendChild(timeCell);
+
+      outputElement.appendChild(row);
     });
 
-    // Insert total row (formatted to 3 decimals)
-    const maxTime = Math.max(...results.map(r => r.time));
+    // Add the total row
     const totalRow = document.createElement("tr");
-    totalRow.innerHTML = `
-      <td>Total</td>
-      <td>${maxTime.toFixed(3)}</td> <!-- Cypress expects 3.006 -->
-    `;
-    body.appendChild(totalRow);
+
+    const totalNameCell = document.createElement("td");
+    totalNameCell.textContent = "Total";
+    totalRow.appendChild(totalNameCell);
+
+    const totalTimeCell = document.createElement("td");
+    totalTimeCell.textContent = totalTime.toFixed(3);
+    totalRow.appendChild(totalTimeCell);
+
+    outputElement.appendChild(totalRow);
   });
+};
