@@ -9,40 +9,44 @@ body.innerHTML = `<tr id="loading">
 
 table.appendChild(body);
 
-function randomPromise(index) {
-  const delay = Math.floor(Math.random() * 2000 + 1000); // 1000–3000ms
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const time = delay / 1000; // keep raw float value
-      resolve({ index, time });
-    }, delay);
-  });
-}
 
-const promise1 = randomPromise(1);
-const promise2 = randomPromise(2);
-const promise3 = randomPromise(3);
+  function randomPromise(index) {
+    const delay = Math.floor(Math.random() * 2000 + 1000); // 1000–3000ms
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const time = +(delay / 1000).toFixed(3); // format to 3 decimals as number
+        resolve({ index, time });
+      }, delay);
+    });
+  }
 
-Promise.all([promise1, promise2, promise3]).then((result) => {
-  body.innerHTML = ""; // Clear "Loading..."
+  const p1 = randomPromise(1);
+  const p2 = randomPromise(2);
+  const p3 = randomPromise(3);
 
-  // Render each promise row with rounded time
-  result.forEach(({ index, time }) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>Promise ${index}</td>
-      <td>${Math.round(time)}</td>
+  Promise.all([p1, p2, p3]).then(results => {
+    // Remove loading row
+    document.getElementById("loading")?.remove();
+
+    // Clear body
+    body.innerHTML = "";
+
+    // Add promise rows
+    results.forEach(({ index, time }) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>Promise ${index}</td>
+        <td>${time.toFixed(3)}</td>
+      `;
+      body.appendChild(row);
+    });
+
+    // Add total row (max of all)
+    const maxTime = Math.max(...results.map(r => r.time)).toFixed(3);
+    const totalRow = document.createElement("tr");
+    totalRow.innerHTML = `
+      <td>Total</td>
+      <td>${maxTime}</td>
     `;
-    body.appendChild(row);
+    body.appendChild(totalRow);
   });
-
-  // Compute precise max time
-  const maxTime = Math.max(...result.map(r => r.time)).toFixed(3);
-
-  const totalRow = document.createElement("tr");
-  totalRow.innerHTML = `
-    <td>Total</td>
-    <td>${maxTime}</td>
-  `;
-  body.appendChild(totalRow);
-});
